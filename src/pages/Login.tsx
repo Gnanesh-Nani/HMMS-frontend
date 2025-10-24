@@ -14,13 +14,15 @@ export default function Login() {
     setErrorMsg("");
   
     const res = await login(regNo, password);
-  
+    console.log(res)
     if (res.error) {
       setErrorMsg(res.message || "Invalid credentials");
     } else {
       const user = res.user;
-  
-      if (user.role === "admin") {
+      if(user.isFirstLogin){
+        navigate("/change-password")
+      }
+      else if (user.role === "admin") {
         navigate("/admin/dashboard");
       } else if (user.role === "student") {
         navigate("/student/dashboard");

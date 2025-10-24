@@ -70,12 +70,7 @@ export const AuthProvider = ({ children }: any) => {
         localStorage.setItem("hmms_user", JSON.stringify(userData));
         localStorage.setItem("hmms_profile", JSON.stringify(profileData));
   
-        // If backend sends JWT token
-        if (res.data.data.token) {
-          localStorage.setItem("hmms_token", res.data.data.token);
-        }
-  
-        return { error: false, user: userData }; // return user for navigation
+        return { error: false, user: userData }; 
       }
   
       return { error: true, message: res.data.message };

@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import api from "../api/axiosInstance";
+import api from "../../api/axiosInstance";
 
 export default function FirstTimeChangePassword() {
   const { user,profile } = useAuth(); // user contains userId, studentProfileId

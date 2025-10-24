@@ -8,7 +8,7 @@ import { AuthProvider } from "./context/AuthContext";
 
 export default function App() {
   return (
-    <AuthProvider> {/* ✅ Context Wrapper — this is essential */}
+    <AuthProvider> {/* ✅ Context    Wrapper — this is essential */}
       <BrowserRouter>
         <Routes>
           {/* Login Page */}

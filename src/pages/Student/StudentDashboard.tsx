@@ -1,5 +1,5 @@
-import StudentHeader from "../components/StudentHeader";
-import Footer from "../components/Footer";
+import StudentHeader from "../../components/StudentHeader";
+import Footer from "../../components/Footer";
 export default function StudentDashboard() {
   return (
     <div className="flex flex-col min-h-screen">

@@ -1,5 +1,5 @@
-import AdminHeader from "../components/AdminHeader";
-import Footer from "../components/Footer";
+import AdminHeader from "../../components/AdminHeader";
+import Footer from "../../components/Footer";
 
 export default function AdminDashboard() {
   return (

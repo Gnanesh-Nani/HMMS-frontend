@@ -27,6 +27,12 @@ export default function AdminHeader() {
             Hostel
           </Link>
           <Link
+            to="/admin/meal-plan"
+            className="hover:text-green-400 transition"
+          >
+            Meal Plan
+          </Link>
+          <Link
             to="/admin/students"
             className="hover:text-green-400 transition"
           >

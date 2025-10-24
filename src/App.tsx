@@ -5,6 +5,7 @@ import AdminDashboard from "./pages/AdminDashboard";
 import ProtectedRoute from "./components/ProtectedRoute";
 // import ChangePasswordPage from "./pages/ChangePassword"; // ✅ Add this route 
 import { AuthProvider } from "./context/AuthContext";
+import MealPlan from "./pages/MealPlan";
 
 export default function App() {
   return (
@@ -36,6 +37,16 @@ export default function App() {
               </ProtectedRoute>
             }
           />
+            <Route
+            path="/admin/meal-plan"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <MealPlan />
+              </ProtectedRoute>
+            }
+          />
+
+
         </Routes>
       </BrowserRouter>
     </AuthProvider>

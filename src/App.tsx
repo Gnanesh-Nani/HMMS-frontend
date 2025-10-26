@@ -14,6 +14,7 @@ import StudentPayment from "./pages/Student/StudentPayment";
 import AdminHostelPage from "./pages/Admin/AdminHostelPage";
 import AdminBlockPage from "./pages/Admin/AdminBlockPage";
 import AdminRoomPage from "./pages/Admin/AdminRoomPage";
+import StudentProfileSelfPage from "./pages/Student/StudentProfilePage";
 
 export default function App() {
   return (
@@ -33,7 +34,7 @@ export default function App() {
             }
           />
 
-          {/* Student Dashboard */}
+          {/* Student*/}
           <Route
             path="/student/dashboard"
             element={
@@ -52,7 +53,16 @@ export default function App() {
             }
           />
 
-          {/* Admin Bulk Register */}
+          <Route
+            path="/student/profile"
+            element={
+              <ProtectedRoute allowedRoles={["student"]}>
+                <StudentProfileSelfPage/>
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Admin */}
           <Route
             path="/admin/bulk-register"
             element={
@@ -70,6 +80,7 @@ export default function App() {
               </ProtectedRoute>
             }
           />
+          
 
           <Route
             path="/admin/hostels/:hostelId/blocks"
@@ -97,7 +108,7 @@ export default function App() {
               </ProtectedRoute>
             }
           />
-          {/*Admin Payment Page*/}
+
           <Route
             path="/admin/payments"
             element={
@@ -114,7 +125,7 @@ export default function App() {
               </ProtectedRoute>
             }
           />
-          {/* Admin Dashboard */}
+
           <Route
             path="/admin/dashboard"
             element={
@@ -123,6 +134,7 @@ export default function App() {
               </ProtectedRoute>
             }
           />
+
           <Route
             path="/admin/meal-plan"
             element={
@@ -131,9 +143,6 @@ export default function App() {
               </ProtectedRoute>
             }
           />
-
-
-
         </Routes>
       </BrowserRouter>
     </AuthProvider>

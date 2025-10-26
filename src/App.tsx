@@ -1,35 +1,150 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import Login from "./pages/Login";
+import StudentDashboard from "./pages/Student/StudentDashboard";
+import AdminDashboard from "./pages/Admin/AdminDashboard";
+import FirstTimeChangePassword from "./pages/Student/FirstTimeChangePassword";
+import ProtectedRoute from "./components/ProtectedRoute";
+import { AuthProvider } from "./context/AuthContext";
+import BulkRegister from "./pages/Admin/Bulk-register";
+import SingleRegister from "./pages/Admin/Single-register";
+import Payment from "./pages/Admin/Payment";
+import AllocatePayment from "./pages/Admin/AllocatePayment";
+import MealPlan from "./pages/Admin/MealPlan";
+import StudentPayment from "./pages/Student/StudentPayment";
+import AdminHostelPage from "./pages/Admin/AdminHostelPage";
+import AdminBlockPage from "./pages/Admin/AdminBlockPage";
+import AdminRoomPage from "./pages/Admin/AdminRoomPage";
+import StudentProfileSelfPage from "./pages/Student/StudentProfilePage";
 
-function App() {
-  const [count, setCount] = useState(0)
-
+export default function App() {
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
-}
+    <AuthProvider>
+      <BrowserRouter>
+        <Routes>
+          {/* Login Page */}
+          <Route path="/" element={<Login />} />
 
-export default App
+          {/* Change Password Page */}
+          <Route
+            path="/change-password"
+            element={
+              <ProtectedRoute allowedRoles={["student", "admin"]}>
+                <FirstTimeChangePassword />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Student*/}
+          <Route
+            path="/student/dashboard"
+            element={
+              <ProtectedRoute allowedRoles={["student"]}>
+                <StudentDashboard />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/student/payment"
+            element={
+              <ProtectedRoute allowedRoles={["student"]}>
+                <StudentPayment />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/student/profile"
+            element={
+              <ProtectedRoute allowedRoles={["student"]}>
+                <StudentProfileSelfPage/>
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Admin */}
+          <Route
+            path="/admin/bulk-register"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <BulkRegister />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/admin/hostel"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <AdminHostelPage />
+              </ProtectedRoute>
+            }
+          />
+          
+
+          <Route
+            path="/admin/hostels/:hostelId/blocks"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <AdminBlockPage />
+              </ProtectedRoute>
+            } 
+          />
+
+          <Route 
+            path="/admin/hostels/:hostelId/blocks/:blockId/rooms" 
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <AdminRoomPage/>
+              </ProtectedRoute>
+            } 
+          />
+
+          <Route
+            path="/admin/single-register"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <SingleRegister />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/admin/payments"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <Payment />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/payments/allocate"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <AllocatePayment />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/admin/dashboard"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <AdminDashboard />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/admin/meal-plan"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <MealPlan />
+              </ProtectedRoute>
+            }
+          />
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
+  );
+}

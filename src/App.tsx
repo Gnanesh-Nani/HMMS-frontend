@@ -2,11 +2,18 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Login from "./pages/Login";
 import StudentDashboard from "./pages/Student/StudentDashboard";
 import AdminDashboard from "./pages/Admin/AdminDashboard";
-import FirstTimeChangePassword from "./pages/Student/change-password";
+import FirstTimeChangePassword from "./pages/Student/FirstTimeChangePassword";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { AuthProvider } from "./context/AuthContext";
-import AdminStudentRecords from "./pages/Admin/AdminStudentRecords";
 import BulkRegister from "./pages/Admin/Bulk-register";
+import SingleRegister from "./pages/Admin/Single-register";
+import Payment from "./pages/Admin/Payment";
+import AllocatePayment from "./pages/Admin/AllocatePayment";
+import MealPlan from "./pages/Admin/MealPlan";
+import StudentPayment from "./pages/Student/StudentPayment";
+import AdminHostelPage from "./pages/Admin/AdminHostelPage";
+import AdminBlockPage from "./pages/Admin/AdminBlockPage";
+import AdminRoomPage from "./pages/Admin/AdminRoomPage";
 
 export default function App() {
   return (
@@ -35,31 +42,78 @@ export default function App() {
               </ProtectedRoute>
             }
           />
-<Route
-  path="/admin/student-records"
-  element={
-    <ProtectedRoute allowedRoles={["admin"]}>
-      <AdminStudentRecords />
-    </ProtectedRoute>
-  }
-/>
-<Route
-  path="/admin/students"   // <-- this must match the URL you are trying to navigate to
-  element={
-    <ProtectedRoute allowedRoles={["admin"]}>
-      <AdminStudentRecords />
-    </ProtectedRoute>
-  }
-/>
 
-<Route
-  path="/admin/bulk-register"
-  element={
-    <ProtectedRoute allowedRoles={["admin"]}>
-      <BulkRegister />
-    </ProtectedRoute>
-  }
-/>
+          <Route
+            path="/student/payment"
+            element={
+              <ProtectedRoute allowedRoles={["student"]}>
+                <StudentPayment />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Admin Bulk Register */}
+          <Route
+            path="/admin/bulk-register"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <BulkRegister />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/admin/hostel"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <AdminHostelPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/admin/hostels/:hostelId/blocks"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <AdminBlockPage />
+              </ProtectedRoute>
+            } 
+          />
+
+          <Route 
+            path="/admin/hostels/:hostelId/blocks/:blockId/rooms" 
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <AdminRoomPage/>
+              </ProtectedRoute>
+            } 
+          />
+
+          <Route
+            path="/admin/single-register"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <SingleRegister />
+              </ProtectedRoute>
+            }
+          />
+          {/*Admin Payment Page*/}
+          <Route
+            path="/admin/payments"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <Payment />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/payments/allocate"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <AllocatePayment />
+              </ProtectedRoute>
+            }
+          />
           {/* Admin Dashboard */}
           <Route
             path="/admin/dashboard"
@@ -69,6 +123,17 @@ export default function App() {
               </ProtectedRoute>
             }
           />
+          <Route
+            path="/admin/meal-plan"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <MealPlan />
+              </ProtectedRoute>
+            }
+          />
+
+
+
         </Routes>
       </BrowserRouter>
     </AuthProvider>

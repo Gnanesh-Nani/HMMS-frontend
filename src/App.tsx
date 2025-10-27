@@ -15,6 +15,7 @@ import AdminHostelPage from "./pages/Admin/AdminHostelPage";
 import AdminBlockPage from "./pages/Admin/AdminBlockPage";
 import AdminRoomPage from "./pages/Admin/AdminRoomPage";
 import StudentProfileSelfPage from "./pages/Student/StudentProfilePage";
+import PublicVerifyNoDue from "./pages/PublicVerifyNoDue";
 
 export default function App() {
   return (
@@ -23,6 +24,7 @@ export default function App() {
         <Routes>
           {/* Login Page */}
           <Route path="/" element={<Login />} />
+          <Route path="/verify/no-due/:token" element={<PublicVerifyNoDue />} />
 
           {/* Change Password Page */}
           <Route

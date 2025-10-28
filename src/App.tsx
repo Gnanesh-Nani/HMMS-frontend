@@ -16,6 +16,7 @@ import AdminBlockPage from "./pages/Admin/AdminBlockPage";
 import AdminRoomPage from "./pages/Admin/AdminRoomPage";
 import StudentProfileSelfPage from "./pages/Student/StudentProfilePage";
 import PublicVerifyNoDue from "./pages/PublicVerifyNoDue";
+import StudentMealPlanPage from "./pages/Student/StudentMealPlanPage";
 
 export default function App() {
   return (
@@ -42,6 +43,15 @@ export default function App() {
             element={
               <ProtectedRoute allowedRoles={["student"]}>
                 <StudentDashboard />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/student/meal-plan"
+            element={
+              <ProtectedRoute allowedRoles={["student"]}>
+                <StudentMealPlanPage/>
               </ProtectedRoute>
             }
           />

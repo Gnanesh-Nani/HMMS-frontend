@@ -14,7 +14,7 @@ interface StudentProfile {
 
 interface Payment {
   id: string;
-  studentProfileId: StudentProfile;
+  studentProfileId: StudentProfile | null; // Updated to allow null
   type: string;
   amount: number;
   dueDate: string;
@@ -59,22 +59,30 @@ export default function Payments() {
     fetchPayments();
   }, []);
 
+  // Safe filter function to handle null studentProfileId
   useEffect(() => {
     let filtered = payments;
 
-    if (year) filtered = filtered.filter((p) => p.studentProfileId.year.toString() === year);
-    if (department)
+    if (year) {
+      filtered = filtered.filter((p) => 
+        p.studentProfileId?.year?.toString() === year
+      );
+    }
+    if (department) {
       filtered = filtered.filter((p) =>
-        p.studentProfileId.department.toLowerCase().includes(department.toLowerCase())
+        p.studentProfileId?.department?.toLowerCase().includes(department.toLowerCase())
       );
-    if (gender)
-      filtered = filtered.filter(
-        (p) => p.studentProfileId.gender.toLowerCase() === gender.toLowerCase()
-      );
-    if (searchName)
+    }
+    if (gender) {
       filtered = filtered.filter((p) =>
-        p.studentProfileId.name.toLowerCase().includes(searchName.toLowerCase())
+        p.studentProfileId?.gender?.toLowerCase() === gender.toLowerCase()
       );
+    }
+    if (searchName) {
+      filtered = filtered.filter((p) =>
+        p.studentProfileId?.name?.toLowerCase().includes(searchName.toLowerCase())
+      );
+    }
 
     setFilteredPayments(filtered);
   }, [year, department, gender, searchName, payments]);
@@ -98,6 +106,25 @@ export default function Payments() {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Helper function to safely get student info
+  const getStudentInfo = (studentProfile: StudentProfile | null) => {
+    if (!studentProfile) {
+      return {
+        name: "Unknown Student",
+        department: "N/A",
+        year: "N/A",
+        gender: "N/A"
+      };
+    }
+    
+    return {
+      name: studentProfile.name || "Unknown Student",
+      department: studentProfile.department || "N/A",
+      year: studentProfile.year?.toString() || "N/A",
+      gender: studentProfile.gender || "N/A"
+    };
   };
 
   return (
@@ -185,51 +212,55 @@ export default function Payments() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredPayments.map((p) => (
-                    <tr key={p.id} className="hover:bg-gray-50">
-                      <td className="px-4 py-2 border">{p.studentProfileId.name}</td>
-                      <td className="px-4 py-2 border">{p.studentProfileId.department}</td>
-                      <td className="px-4 py-2 border">{p.studentProfileId.year}</td>
-                      <td className="px-4 py-2 border">{p.studentProfileId.gender}</td>
-                      <td className="px-4 py-2 border">{p.type}</td>
-                      <td className="px-4 py-2 border">₹{p.amount}</td>
-                      <td className="px-4 py-2 border">{new Date(p.dueDate).toLocaleDateString()}</td>
-                      <td
-                        className={`px-4 py-2 border font-semibold ${p.status === "pending" ? "text-red-500" : "text-green-600"
+                  {filteredPayments.map((p) => {
+                    const studentInfo = getStudentInfo(p.studentProfileId);
+                    
+                    return (
+                      <tr key={p.id} className="hover:bg-gray-50">
+                        <td className="px-4 py-2 border">{studentInfo.name}</td>
+                        <td className="px-4 py-2 border">{studentInfo.department}</td>
+                        <td className="px-4 py-2 border">{studentInfo.year}</td>
+                        <td className="px-4 py-2 border">{studentInfo.gender}</td>
+                        <td className="px-4 py-2 border">{p.type}</td>
+                        <td className="px-4 py-2 border">₹{p.amount}</td>
+                        <td className="px-4 py-2 border">{new Date(p.dueDate).toLocaleDateString()}</td>
+                        <td
+                          className={`px-4 py-2 border font-semibold ${
+                            p.status === "pending" ? "text-red-500" : "text-green-600"
                           }`}
-                      >
-                        {p.status}
-                      </td>
-                      <td className="px-4 py-2 border">{p.feeMonth}</td>
-                      <td className="px-4 py-2 border">{p.description}</td>
-                      <td className="px-4 py-2 border">
-                        <div className="flex justify-center gap-2">
-                          {p.status !== "success" && (
-                            <>
-                              <button
-                                onClick={() =>
-                                  navigate("/admin/payments/allocate", { state: { payment: p } })
-                                }
-                                className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded-md transition"
-                              >
-                                Edit
-                              </button>
-                              <button
-                                onClick={() => handleDelete(p.id)}
-                                className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-md transition"
-                              >
-                                Delete
-                              </button>
-                            </>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                        >
+                          {p.status}
+                        </td>
+                        <td className="px-4 py-2 border">{p.feeMonth}</td>
+                        <td className="px-4 py-2 border">{p.description}</td>
+                        <td className="px-4 py-2 border">
+                          <div className="flex justify-center gap-2">
+                            {p.status !== "success" && (
+                              <>
+                                <button
+                                  onClick={() =>
+                                    navigate("/admin/payments/allocate", { state: { payment: p } })
+                                  }
+                                  className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded-md transition"
+                                >
+                                  Edit
+                                </button>
+                                <button
+                                  onClick={() => handleDelete(p.id)}
+                                  className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-md transition"
+                                >
+                                  Delete
+                                </button>
+                              </>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
-
           )}
         </div>
       </main>

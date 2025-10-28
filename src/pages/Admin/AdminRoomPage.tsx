@@ -8,7 +8,9 @@ import RoomModal from "../../components/RoomModal";
 interface Student {
   id: string;
   name: string;
-  registerNo: string;
+  registerNo?: string;
+  department?: string;
+  year?: number;
 }
 
 interface Room {
@@ -31,7 +33,6 @@ interface Hostel {
   id: string;
   name: string;
   type: string;
-  totalBlocks: number;
   warden: string;
   description: string;
   mealPlan: string;
@@ -56,17 +57,21 @@ export default function AdminRoomPage() {
   const [searchRoomNo, setSearchRoomNo] = useState<string>("");
 
   const fetchRooms = async () => {
+    if (!blockId) return;
+    
     try {
       setLoading(true);
+      setError("");
       const res = await api.get(`/blocks/${blockId}/rooms`);
       if (!res.data.error) {
-        setRooms(res.data.data);
-        setFilteredRooms(res.data.data);
+        setRooms(res.data.data || []);
+        setFilteredRooms(res.data.data || []);
       } else {
-        setError(res.data.message);
+        setError(res.data.message || "Failed to fetch rooms");
       }
     } catch (err: any) {
       setError(err.response?.data?.message || "Failed to fetch rooms");
+      console.error("Rooms fetch error:", err);
     } finally {
       setLoading(false);
     }
@@ -89,7 +94,7 @@ export default function AdminRoomPage() {
   };
 
   const fetchBlock = async () => {
-    if (!hostelId || !blockId) return;
+    if (!blockId) return;
     
     try {
       setBlockLoading(true);
@@ -137,10 +142,9 @@ export default function AdminRoomPage() {
     try {
       await api.delete(`/room/${deleteConfirm.roomId}`);
       fetchRooms();
+      setDeleteConfirm(null);
     } catch (err: any) {
       alert(err.response?.data?.message || "Failed to delete room");
-    } finally {
-      setDeleteConfirm(null);
     }
   };
 
@@ -159,18 +163,31 @@ export default function AdminRoomPage() {
     return `${floor}th Floor`;
   };
 
+  // Helper function to safely get student info
+  const getStudentInfo = (student: any): Student => {
+    return {
+      id: student.id || student._id,
+      name: student.name || 'Unknown',
+      department: student.department || 'N/A',
+      year: student.year || student.currentYear || 1,
+      registerNo: student.registerNo || student.userId?.registerNo || 'N/A'
+    };
+  };
+
   useEffect(() => {
-    if (blockId && hostelId) {
+    if (blockId) {
       fetchRooms();
-      fetchHostel();
       fetchBlock();
+    }
+    if (hostelId) {
+      fetchHostel();
     }
   }, [blockId, hostelId]);
 
   const isOverlayActive = showModal || deleteConfirm?.show;
 
   return (
-    <div className={`min-h-screen flex flex-col ${isOverlayActive ? "backdrop-blur-sm" : ""}`}>
+    <div className={`min-h-screen flex flex-col ${isOverlayActive ? "overflow-hidden" : ""}`}>
       <AdminHeader />
       <main className={`flex-grow bg-gray-50 p-6 transition-all duration-300 ${isOverlayActive ? "blur-sm" : ""}`}>
         <div className="max-w-6xl mx-auto">
@@ -184,22 +201,27 @@ export default function AdminRoomPage() {
               </div>
             ) : (hostel && block) ? (
               <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
-                  <div>
-                    <h1 className="text-3xl font-bold text-gray-800 mb-2">
-                      {hostel.name} - Block {block.name}
-                    </h1>
-                    <div className="flex flex-wrap gap-4 text-sm text-gray-600 mb-3">
-                      <span className="capitalize"> {hostel.type} Hostel</span>
-                      <span> Warden: {hostel.warden || "Not assigned"}</span>
-                      <span> Total Floors: {block.totalFloors}</span>
-                      <span> Total Rooms: {rooms.length}</span>
-                    </div>
+                <div>
+                  <h1 className="text-3xl font-bold text-gray-800 mb-2">
+                    {hostel.name} - Block {block.name}
+                  </h1>
+                  <div className="flex flex-wrap gap-4 text-sm text-gray-600 mb-3">
+                    <span className="capitalize">{hostel.type} Hostel</span>
+                    <span>Warden: {hostel.warden || "Not assigned"}</span>
+                    <span>Total Floors: {block.totalFloors}</span>
+                    <span>Total Rooms: {rooms.length}</span>
                   </div>
+                  {hostel.description && (
+                    <p className="text-gray-600 text-sm">{hostel.description}</p>
+                  )}
+                </div>
               </div>
             ) : (
               <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
                 <h1 className="text-3xl font-bold text-gray-800 mb-2">Room Management</h1>
-                <p className="text-gray-600">Loading hostel and block information...</p>
+                <p className="text-gray-600">
+                  {blockId ? `Block ID: ${blockId}` : "No block selected"}
+                </p>
               </div>
             )}
           </div>
@@ -209,7 +231,7 @@ export default function AdminRoomPage() {
             <div>
               <h2 className="text-2xl font-bold text-gray-800">Rooms</h2>
               <p className="text-gray-600 text-sm">
-                Manage rooms for Block {block?.name}
+                {block ? `Manage rooms for Block ${block.name}` : "Manage rooms"}
               </p>
             </div>
             
@@ -254,6 +276,7 @@ export default function AdminRoomPage() {
                   setShowModal(true);
                 }}
                 className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition whitespace-nowrap"
+                disabled={!blockId}
               >
                 + Add Room
               </button>
@@ -288,74 +311,106 @@ export default function AdminRoomPage() {
             </div>
           )}
 
-          {loading && <p className="text-gray-500 text-center">Loading rooms...</p>}
-          {error && <p className="text-red-500 text-center">{error}</p>}
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredRooms.map((room) => (
-              <div
-                key={room.id}
-                className="bg-white rounded-xl shadow-lg p-5 border-l-4 border-blue-500 flex flex-col justify-between hover:shadow-xl transition-shadow"
+          {loading && (
+            <div className="text-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+              <p className="text-gray-500 mt-2">Loading rooms...</p>
+            </div>
+          )}
+          
+          {error && (
+            <div className="text-center py-4">
+              <p className="text-red-500 bg-red-50 p-3 rounded-lg border border-red-200">
+                {error}
+              </p>
+              <button
+                onClick={fetchRooms}
+                className="mt-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
               >
-                <div>
-                  <div className="flex justify-between items-start mb-3">
-                    <h2 className="text-xl font-bold text-gray-800">
-                      Room {room.roomNo}
-                    </h2>
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                      room.currentStudents.length >= room.maxCapacity 
-                        ? "bg-red-100 text-red-800" 
-                        : "bg-green-100 text-green-800"
-                    }`}>
-                      {room.currentStudents.length}/{room.maxCapacity}
-                    </span>
-                  </div>
-                  
-                  <div className="space-y-2 text-sm text-gray-700">
-                    <p>
-                      <span className="font-semibold">Floor:</span> {getFloorLabel(room.floorNo)}
-                    </p>
-                    <p><span className="font-semibold">Capacity:</span> {room.maxCapacity} students</p>
-                    
-                    {room.currentStudents.length > 0 ? (
-                      <div>
-                        <p className="font-semibold mb-1">Current Students:</p>
-                        <ul className="space-y-1">
-                          {room.currentStudents.map((student) => (
-                            <li key={student.id} className="text-xs bg-gray-100 p-1 rounded">
-                              {student.name} ({student.registerNo})
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    ) : (
-                      <p className="text-gray-500 text-sm">No students assigned</p>
-                    )}
-                  </div>
-                </div>
-                
-                <div className="flex justify-between mt-4">
-                  <button
-                    onClick={() => {
-                      setEditRoom(room);
-                      setShowModal(true);
-                    }}
-                    className="px-3 py-1 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition text-sm"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => showDeleteConfirm(room)}
-                    className="px-3 py-1 bg-red-500 text-white rounded-lg hover:bg-red-600 transition text-sm"
-                  >
-                    Delete
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
+                Retry
+              </button>
+            </div>
+          )}
 
-          {!loading && rooms.length === 0 && (
+          {!loading && !error && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredRooms.map((room) => {
+                const studentCount = room.currentStudents?.length || 0;
+                const isFull = studentCount >= room.maxCapacity;
+                
+                return (
+                  <div
+                    key={room.id}
+                    className="bg-white rounded-xl shadow-lg p-5 border-l-4 border-blue-500 flex flex-col justify-between hover:shadow-xl transition-shadow"
+                  >
+                    <div>
+                      <div className="flex justify-between items-start mb-3">
+                        <h2 className="text-xl font-bold text-gray-800">
+                          Room {room.roomNo}
+                        </h2>
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                          isFull 
+                            ? "bg-red-100 text-red-800" 
+                            : "bg-green-100 text-green-800"
+                        }`}>
+                          {studentCount}/{room.maxCapacity}
+                        </span>
+                      </div>
+                      
+                      <div className="space-y-2 text-sm text-gray-700">
+                        <p>
+                          <span className="font-semibold">Floor:</span> {getFloorLabel(room.floorNo)}
+                        </p>
+                        <p><span className="font-semibold">Capacity:</span> {room.maxCapacity} students</p>
+                        
+                        {studentCount > 0 ? (
+                          <div>
+                            <p className="font-semibold mb-1">Current Students:</p>
+                            <ul className="space-y-1">
+                              {room.currentStudents.map((student) => {
+                                const studentInfo = getStudentInfo(student);
+                                return (
+                                  <li key={studentInfo.id} className="text-xs bg-gray-100 p-2 rounded">
+                                    <div className="font-medium">{studentInfo.name}</div>
+                                    <div className="text-gray-600">
+                                      {studentInfo.registerNo && `${studentInfo.registerNo} • `}
+                                      {studentInfo.department} • Year {studentInfo.year}
+                                    </div>
+                                  </li>
+                                );
+                              })}
+                            </ul>
+                          </div>
+                        ) : (
+                          <p className="text-gray-500 text-sm">No students assigned</p>
+                        )}
+                      </div>
+                    </div>
+                    
+                    <div className="flex justify-between mt-4">
+                      <button
+                        onClick={() => {
+                          setEditRoom(room);
+                          setShowModal(true);
+                        }}
+                        className="px-3 py-1 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition text-sm"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => showDeleteConfirm(room)}
+                        className="px-3 py-1 bg-red-500 text-white rounded-lg hover:bg-red-600 transition text-sm"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {!loading && !error && rooms.length === 0 && (
             <div className="text-center py-12 bg-white rounded-xl shadow border">
               <div className="text-6xl mb-4">🚪</div>
               <h3 className="text-xl font-semibold text-gray-800 mb-2">
@@ -367,13 +422,14 @@ export default function AdminRoomPage() {
               <button
                 onClick={() => setShowModal(true)}
                 className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition"
+                disabled={!blockId}
               >
                 Create First Room
               </button>
             </div>
           )}
 
-          {!loading && rooms.length > 0 && filteredRooms.length === 0 && (
+          {!loading && !error && rooms.length > 0 && filteredRooms.length === 0 && (
             <div className="text-center py-12">
               <p className="text-gray-500 text-lg">No rooms match your filters.</p>
               <button
@@ -390,21 +446,29 @@ export default function AdminRoomPage() {
         </div>
       </main>
 
-      {/* Room Modal */}
-      <RoomModal
-        show={showModal}
-        onClose={() => setShowModal(false)}
-        blockId={blockId!}
-        room={editRoom}
-        onSuccess={() => {
-          setShowModal(false);
-          fetchRooms();
-        }}
-      />
+      {/* Room Modal - FIXED: Properly fixed positioning */}
+      {blockId && hostelId && showModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <RoomModal
+              hostelId={hostelId}
+              show={showModal}
+              onClose={() => setShowModal(false)}
+              blockId={blockId}
+              room={editRoom}
+              onSuccess={() => {
+                setShowModal(false);
+                setEditRoom(null);
+                fetchRooms();
+              }}
+            />
+          </div>
+        </div>
+      )}
 
-      {/* Delete Confirmation Modal */}
+      {/* Delete Confirmation Modal - FIXED: Properly fixed positioning */}
       {deleteConfirm?.show && (
-        <div className="fixed inset-0 flex items-center justify-center z-50 backdrop-blur-sm bg-black/50 p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
           <div className="bg-white p-6 rounded-xl shadow-lg w-full max-w-md">
             <h2 className="text-xl font-bold mb-4 text-center text-red-600">
               Confirm Deletion

@@ -19,6 +19,7 @@ interface Profile {
   fathersName: string | null;
   address: string | null;
   mailId: string;
+  hostel: string | null;
   id: string;
 }
 

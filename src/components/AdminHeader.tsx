@@ -6,6 +6,7 @@ export default function AdminHeader() {
   const navigate = useNavigate();
   const { logout, profile } = useAuth();
   const [isRegisterDropdownOpen, setIsRegisterDropdownOpen] = useState(false);
+  const [isPaymentDropdownOpen, setIsPaymentDropdownOpen] = useState(false);
 
   const handleLogout = () => {
     logout();
@@ -62,8 +63,52 @@ export default function AdminHeader() {
             )}
           </div>
 
+          {/* Payment Dropdown */}
+          <div className="relative">
+            <button
+              onClick={() => setIsPaymentDropdownOpen(!isPaymentDropdownOpen)}
+              className="text-slate-600 hover:text-sky-600 font-medium transition text-sm flex items-center gap-1"
+            >
+              Payments
+              <svg 
+                className={`w-4 h-4 transition-transform ${isPaymentDropdownOpen ? 'rotate-180' : ''}`} 
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+
+            {/* Dropdown Menu */}
+            {isPaymentDropdownOpen && (
+              <div className="absolute top-full left-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
+                <Link
+                  to="/admin/payments"
+                  className="block px-4 py-2 text-sm text-slate-600 hover:bg-sky-50 hover:text-sky-600 transition"
+                  onClick={() => setIsPaymentDropdownOpen(false)}
+                >
+                  View Payments
+                </Link>
+                <Link
+                  to="/admin/payments/allocate"
+                  className="block px-4 py-2 text-sm text-slate-600 hover:bg-sky-50 hover:text-sky-600 transition"
+                  onClick={() => setIsPaymentDropdownOpen(false)}
+                >
+                  Allocate Payment
+                </Link>
+                <Link
+                  to="/admin/payments/bulk-allocate"
+                  className="block px-4 py-2 text-sm text-slate-600 hover:bg-sky-50 hover:text-sky-600 transition"
+                  onClick={() => setIsPaymentDropdownOpen(false)}
+                >
+                  Bulk Allocate
+                </Link>
+              </div>
+            )}
+          </div>
+
           <NavLink to="/admin/meal-plan" label="MealPlan"/>
-          <NavLink to="/admin/payments" label="Payments" />
           <NavLink to="/admin/feedback" label="Feedback / Complaints" />
 
           {/* Profile Info */}
@@ -83,11 +128,14 @@ export default function AdminHeader() {
         </nav>
       </div>
 
-      {/* Close dropdown when clicking outside */}
-      {isRegisterDropdownOpen && (
+      {/* Close dropdowns when clicking outside */}
+      {(isRegisterDropdownOpen || isPaymentDropdownOpen) && (
         <div 
           className="fixed inset-0 z-40" 
-          onClick={() => setIsRegisterDropdownOpen(false)}
+          onClick={() => {
+            setIsRegisterDropdownOpen(false);
+            setIsPaymentDropdownOpen(false);
+          }}
         />
       )}
     </header>

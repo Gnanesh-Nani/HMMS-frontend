@@ -17,6 +17,7 @@ import AdminRoomPage from "./pages/Admin/AdminRoomPage";
 import StudentProfileSelfPage from "./pages/Student/StudentProfilePage";
 import PublicVerifyNoDue from "./pages/PublicVerifyNoDue";
 import StudentMealPlanPage from "./pages/Student/StudentMealPlanPage";
+import BulkPayment from "./pages/Admin/BulkPayment";
 
 export default function App() {
   return (
@@ -137,7 +138,14 @@ export default function App() {
               </ProtectedRoute>
             }
           />
-
+          <Route
+            path="/admin/payments/bulk-allocate"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <BulkPayment />
+              </ProtectedRoute>
+            }
+          />
           <Route
             path="/admin/dashboard"
             element={

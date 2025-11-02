@@ -14,13 +14,16 @@ interface StudentProfile {
 
 interface Payment {
   id: string;
-  studentProfileId: StudentProfile | null; // Updated to allow null
+  studentProfileId: StudentProfile | null;
   type: string;
   amount: number;
   dueDate: string;
   status: string;
   feeMonth: string;
   description: string;
+  hasFine?: boolean;
+  fineAmount?: number;
+  originalAmount?: number;
 }
 
 export default function Payments() {
@@ -37,13 +40,42 @@ export default function Payments() {
 
   const navigate = useNavigate();
 
+  // Function to check if due date has passed and apply fine
+  const applyFineIfDueDatePassed = (payment: Payment): Payment => {
+    const dueDate = new Date(payment.dueDate);
+    const today = new Date();
+    
+    // Reset time part for accurate date comparison
+    today.setHours(0, 0, 0, 0);
+    dueDate.setHours(0, 0, 0, 0);
+
+    const isDueDatePassed = dueDate < today;
+    const isPending = payment.status === "pending";
+
+    if (isDueDatePassed && isPending && !payment.hasFine) {
+      return {
+        ...payment,
+        hasFine: true,
+        originalAmount: payment.amount,
+        amount: payment.amount + 250,
+        fineAmount: 250
+      };
+    }
+
+    return payment;
+  };
+
   const fetchPayments = async () => {
     try {
       setLoading(true);
       const res = await api.get("/payment");
       if (!res.data.error) {
-        setPayments(res.data.data);
-        setFilteredPayments(res.data.data);
+        // Apply fines to payments with passed due dates
+        const paymentsWithFines = res.data.data.map((payment: Payment) => 
+          applyFineIfDueDatePassed(payment)
+        );
+        setPayments(paymentsWithFines);
+        setFilteredPayments(paymentsWithFines);
       } else {
         setErrorMsg(res.data.message || "Failed to fetch payments.");
       }
@@ -57,6 +89,17 @@ export default function Payments() {
 
   useEffect(() => {
     fetchPayments();
+  }, []);
+
+  // Check and update fines periodically (every hour)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setPayments(prevPayments => 
+        prevPayments.map(payment => applyFineIfDueDatePassed(payment))
+      );
+    }, 60 * 60 * 1000); // Check every hour
+
+    return () => clearInterval(interval);
   }, []);
 
   // Safe filter function to handle null studentProfileId
@@ -106,6 +149,15 @@ export default function Payments() {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Helper function to check if due date has passed
+  const isDueDatePassed = (dueDate: string): boolean => {
+    const due = new Date(dueDate);
+    const today = new Date();
+    due.setHours(0, 0, 0, 0);
+    today.setHours(0, 0, 0, 0);
+    return due < today;
   };
 
   // Helper function to safely get student info
@@ -203,7 +255,7 @@ export default function Payments() {
                     <th className="px-4 py-2 border w-16">Year</th>
                     <th className="px-4 py-2 border w-20">Gender</th>
                     <th className="px-4 py-2 border w-24">Type</th>
-                    <th className="px-4 py-2 border w-20">Amount</th>
+                    <th className="px-4 py-2 border w-28">Amount</th>
                     <th className="px-4 py-2 border w-24">Due Date</th>
                     <th className="px-4 py-2 border w-20">Status</th>
                     <th className="px-4 py-2 border w-24">Month</th>
@@ -214,22 +266,58 @@ export default function Payments() {
                 <tbody>
                   {filteredPayments.map((p) => {
                     const studentInfo = getStudentInfo(p.studentProfileId);
+                    const isOverdue = isDueDatePassed(p.dueDate) && p.status === "pending";
                     
                     return (
-                      <tr key={p.id} className="hover:bg-gray-50">
+                      <tr key={p.id} className={`hover:bg-gray-50 ${isOverdue ? 'bg-red-50' : ''}`}>
                         <td className="px-4 py-2 border">{studentInfo.name}</td>
                         <td className="px-4 py-2 border">{studentInfo.department}</td>
                         <td className="px-4 py-2 border">{studentInfo.year}</td>
                         <td className="px-4 py-2 border">{studentInfo.gender}</td>
-                        <td className="px-4 py-2 border">{p.type}</td>
-                        <td className="px-4 py-2 border">₹{p.amount}</td>
-                        <td className="px-4 py-2 border">{new Date(p.dueDate).toLocaleDateString()}</td>
+                        <td className="px-4 py-2 border">
+                          <div className="flex items-center justify-center gap-1">
+                            {p.type}
+                            {p.hasFine && (
+                              <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full ml-1">
+                                FINE
+                              </span>
+                            )}
+                          </div>
+                        </td>
+                        <td className="px-4 py-2 border">
+                          <div className="flex flex-col items-center">
+                            <span className="font-semibold">₹{p.amount}</span>
+                            {p.hasFine && p.originalAmount && (
+                              <span className="text-xs text-gray-500 line-through">
+                                ₹{p.originalAmount}
+                              </span>
+                            )}
+                            {p.hasFine && (
+                              <span className="text-xs text-red-500">
+                                +₹{p.fineAmount} fine
+                              </span>
+                            )}
+                          </div>
+                        </td>
+                        <td className="px-4 py-2 border">
+                          <div className={`flex flex-col items-center ${isOverdue ? 'text-red-600 font-semibold' : ''}`}>
+                            <span>{new Date(p.dueDate).toLocaleDateString()}</span>
+                            {isOverdue && (
+                              <span className="text-xs bg-red-100 text-red-800 px-2 py-1 rounded-full mt-1">
+                                OVERDUE
+                              </span>
+                            )}
+                          </div>
+                        </td>
                         <td
                           className={`px-4 py-2 border font-semibold ${
-                            p.status === "pending" ? "text-red-500" : "text-green-600"
+                            p.status === "pending" 
+                              ? isOverdue ? "text-red-600" : "text-yellow-600" 
+                              : "text-green-600"
                           }`}
                         >
                           {p.status}
+                          {isOverdue && " ⚠️"}
                         </td>
                         <td className="px-4 py-2 border">{p.feeMonth}</td>
                         <td className="px-4 py-2 border">{p.description}</td>

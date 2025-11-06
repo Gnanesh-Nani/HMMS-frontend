@@ -12,6 +12,7 @@ export interface Hostel {
     warden: string;
     description: string;
     mealPlan: MealPlan | null;
+    hostelFee: number; // Add this line
 }
 
 interface HostelModalProps {
@@ -96,6 +97,18 @@ export default function HostelModal({
                         value={formData.description}
                         onChange={handleChange}
                         className="w-full border p-2 rounded"
+                    />
+
+                    {/* Add hostel fee input field */}
+                    <input
+                        type="number"
+                        name="hostelFee"
+                        placeholder="Hostel Fee"
+                        value={formData.hostelFee}
+                        onChange={handleChange}
+                        className="w-full border p-2 rounded"
+                        min="0"
+                        step="0.01"
                     />
 
                     <select

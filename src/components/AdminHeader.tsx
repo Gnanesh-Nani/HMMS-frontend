@@ -7,10 +7,18 @@ export default function AdminHeader() {
   const { logout, profile } = useAuth();
   const [isRegisterDropdownOpen, setIsRegisterDropdownOpen] = useState(false);
   const [isPaymentDropdownOpen, setIsPaymentDropdownOpen] = useState(false);
+  const [isMigrationDropdownOpen, setIsMigrationDropdownOpen] = useState(false);
 
   const handleLogout = () => {
     logout();
     navigate("/");
+  };
+
+  // Close all dropdowns
+  const closeAllDropdowns = () => {
+    setIsRegisterDropdownOpen(false);
+    setIsPaymentDropdownOpen(false);
+    setIsMigrationDropdownOpen(false);
   };
 
   return (
@@ -23,12 +31,16 @@ export default function AdminHeader() {
 
         {/* Menu Links */}
         <nav className="flex items-center gap-6">
-          <NavLink to="/admin/hostel" label="Hostel" />
+          <NavLink to="/admin/hostel" label="Hostel" onClick={closeAllDropdowns} />
           
           {/* Register Dropdown */}
           <div className="relative">
             <button
-              onClick={() => setIsRegisterDropdownOpen(!isRegisterDropdownOpen)}
+              onClick={() => {
+                setIsRegisterDropdownOpen(!isRegisterDropdownOpen);
+                setIsPaymentDropdownOpen(false);
+                setIsMigrationDropdownOpen(false);
+              }}
               className="text-slate-600 hover:text-sky-600 font-medium transition text-sm flex items-center gap-1"
             >
               Register
@@ -48,14 +60,14 @@ export default function AdminHeader() {
                 <Link
                   to="/admin/single-register"
                   className="block px-4 py-2 text-sm text-slate-600 hover:bg-sky-50 hover:text-sky-600 transition"
-                  onClick={() => setIsRegisterDropdownOpen(false)}
+                  onClick={closeAllDropdowns}
                 >
                   Single Register
                 </Link>
                 <Link
                   to="/admin/bulk-register"
                   className="block px-4 py-2 text-sm text-slate-600 hover:bg-sky-50 hover:text-sky-600 transition"
-                  onClick={() => setIsRegisterDropdownOpen(false)}
+                  onClick={closeAllDropdowns}
                 >
                   Bulk Register
                 </Link>
@@ -66,7 +78,11 @@ export default function AdminHeader() {
           {/* Payment Dropdown */}
           <div className="relative">
             <button
-              onClick={() => setIsPaymentDropdownOpen(!isPaymentDropdownOpen)}
+              onClick={() => {
+                setIsPaymentDropdownOpen(!isPaymentDropdownOpen);
+                setIsRegisterDropdownOpen(false);
+                setIsMigrationDropdownOpen(false);
+              }}
               className="text-slate-600 hover:text-sky-600 font-medium transition text-sm flex items-center gap-1"
             >
               Payments
@@ -86,21 +102,21 @@ export default function AdminHeader() {
                 <Link
                   to="/admin/payments"
                   className="block px-4 py-2 text-sm text-slate-600 hover:bg-sky-50 hover:text-sky-600 transition"
-                  onClick={() => setIsPaymentDropdownOpen(false)}
+                  onClick={closeAllDropdowns}
                 >
                   View Payments
                 </Link>
                 <Link
                   to="/admin/payments/allocate"
                   className="block px-4 py-2 text-sm text-slate-600 hover:bg-sky-50 hover:text-sky-600 transition"
-                  onClick={() => setIsPaymentDropdownOpen(false)}
+                  onClick={closeAllDropdowns}
                 >
                   Allocate Payment
                 </Link>
                 <Link
                   to="/admin/payments/bulk-allocate"
                   className="block px-4 py-2 text-sm text-slate-600 hover:bg-sky-50 hover:text-sky-600 transition"
-                  onClick={() => setIsPaymentDropdownOpen(false)}
+                  onClick={closeAllDropdowns}
                 >
                   Bulk Allocate
                 </Link>
@@ -108,9 +124,66 @@ export default function AdminHeader() {
             )}
           </div>
 
-          <NavLink to="/admin/meal-plan" label="MealPlan"/>
-          <NavLink to="/admin/feedback" label="Feedback / Complaints" />
+          {/* Migration Dropdown */}
+          <div className="relative">
+            <button
+              onClick={() => {
+                setIsMigrationDropdownOpen(!isMigrationDropdownOpen);
+                setIsRegisterDropdownOpen(false);
+                setIsPaymentDropdownOpen(false);
+              }}
+              className="text-slate-600 hover:text-sky-600 font-medium transition text-sm flex items-center gap-1"
+            >
+              Migration
+              <svg 
+                className={`w-4 h-4 transition-transform ${isMigrationDropdownOpen ? 'rotate-180' : ''}`} 
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
 
+            {/* Dropdown Menu */}
+            {isMigrationDropdownOpen && (
+              <div className="absolute top-full left-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
+                <Link
+                  to="/admin/hostel-migration"
+                  className="block px-4 py-2 text-sm text-slate-600 hover:bg-sky-50 hover:text-sky-600 transition"
+                  onClick={closeAllDropdowns}
+                >
+                  View Migrations
+                </Link>
+                <Link
+                  to="/admin/create-migration"
+                  className="block px-4 py-2 text-sm text-slate-600 hover:bg-sky-50 hover:text-sky-600 transition"
+                  onClick={closeAllDropdowns}
+                >
+                  Create Migration
+                </Link>
+                {/* <Link
+                  to="/admin/migration-status"
+                  className="block px-4 py-2 text-sm text-slate-600 hover:bg-sky-50 hover:text-sky-600 transition"
+                  onClick={closeAllDropdowns}
+                >
+                  Migration Status
+                </Link>
+                <Link
+                  to="/admin/allocation-logs"
+                  className="block px-4 py-2 text-sm text-slate-600 hover:bg-sky-50 hover:text-sky-600 transition"
+                  onClick={closeAllDropdowns}
+                >
+                  Allocation Logs
+                </Link> */}
+              </div>
+            )}
+          </div>
+
+          <NavLink to="/admin/meal-plan" label="MealPlan" onClick={closeAllDropdowns}/>
+          <NavLink to="/admin/notifications" label="Notifications" onClick={closeAllDropdowns} />
+          <NavLink to="/admin/feedback" label="Feedback / Complaints" onClick={closeAllDropdowns} />
+          
           {/* Profile Info */}
           {profile && (
             <div className="ml-4 flex items-center gap-2 text-sm text-slate-600 bg-slate-100 px-3 py-1.5 rounded-lg">
@@ -129,24 +202,22 @@ export default function AdminHeader() {
       </div>
 
       {/* Close dropdowns when clicking outside */}
-      {(isRegisterDropdownOpen || isPaymentDropdownOpen) && (
+      {(isRegisterDropdownOpen || isPaymentDropdownOpen || isMigrationDropdownOpen) && (
         <div 
           className="fixed inset-0 z-40" 
-          onClick={() => {
-            setIsRegisterDropdownOpen(false);
-            setIsPaymentDropdownOpen(false);
-          }}
+          onClick={closeAllDropdowns}
         />
       )}
     </header>
   );
 }
 
-function NavLink({ to, label }: { to: string; label: string }) {
+function NavLink({ to, label, onClick }: { to: string; label: string; onClick?: () => void }) {
   return (
     <Link
       to={to}
       className="text-slate-600 hover:text-sky-600 font-medium transition text-sm"
+      onClick={onClick}
     >
       {label}
     </Link>

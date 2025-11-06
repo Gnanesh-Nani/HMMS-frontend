@@ -22,7 +22,7 @@ export default function Login() {
       if (user.isFirstLogin) {
         navigate("/change-password");
       } else if (user.role === "admin") {
-        navigate("/admin/dashboard");
+        navigate("/admin/hostel");
       } else if (user.role === "student") {
         navigate("/student/dashboard");
       } else {

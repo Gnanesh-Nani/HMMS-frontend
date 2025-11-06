@@ -5,6 +5,9 @@ import AdminFooter from "../../components/Footer";
 import api from "../../api/axiosInstance";
 import { useAuth } from "../../context/AuthContext";
 import StripeSuccessModal from "../../components/StripeSuccessModal";
+import PreferenceModal from "../../components/PreferenceModal";
+import type { StudentPreference } from "../../components/PreferenceModal";
+import { StudyHabit,HealthCondition } from "../../components/PreferenceModal"; 
 
 interface Payment {
   id: string;
@@ -29,6 +32,20 @@ export default function StudentPayment() {
   const [showSuccess, setShowSuccess] = useState(false);
   const [receiptUrl, setReceiptUrl] = useState<string | null>(null);
   const [successError, setSuccessError] = useState<string | null>(null);
+
+  // Preference modal state
+  const [showPreferenceModal, setShowPreferenceModal] = useState(false);
+  const [currentPaymentId, setCurrentPaymentId] = useState<string | null>(null);
+  const [preferenceLoading, setPreferenceLoading] = useState(false);
+  const [preferenceError, setPreferenceError] = useState("");
+  const [preferenceData, setPreferenceData] = useState<StudentPreference>({
+    studentProfileId: "",
+    preferredRoommates: [],
+    wakeupTime: "08:00",
+    sleepTime: "22:00",
+    studyHabit: StudyHabit.FLEXIBLE,
+    healthCondition: HealthCondition.NONE,
+  });
 
   const [searchParams] = useSearchParams();
   const queryPaymentId = searchParams.get("paymentId");
@@ -58,8 +75,114 @@ export default function StudentPayment() {
     fetchPayments();
   }, [profile]);
 
-  // Pay Now
+  // Fetch student preference
+  const fetchStudentPreference = async () => {
+    if (!profile) return;
+    try {
+      setPreferenceLoading(true);
+      setPreferenceError("");
+      const res = await api.get(`/students/preference/${profile.id}`);
+      if (!res.data.error && res.data.data) {
+        const pref = res.data.data;
+        setPreferenceData({
+          studentProfileId: profile.id,
+          preferredRoommates: pref.preferredRoommates || [],
+          wakeupTime: pref.wakeupTime ? pref.wakeupTime.substring(0, 5) : "08:00",
+          sleepTime: pref.sleepTime ? pref.sleepTime.substring(0, 5) : "22:00",
+          studyHabit: pref.studyHabit || StudyHabit.FLEXIBLE,
+          healthCondition: pref.healthCondition || HealthCondition.NONE,
+          id: pref.id
+        });
+      } else {
+        // Initialize with default values if no preference found
+        setPreferenceData({
+          studentProfileId: profile.id,
+          preferredRoommates: [],
+          wakeupTime: "08:00",
+          sleepTime: "22:00",
+          studyHabit: StudyHabit.FLEXIBLE,
+          healthCondition: HealthCondition.NONE,
+        });
+      }
+    } catch (err: any) {
+      console.error("Error fetching preference:", err);
+      // Initialize with default values on error
+      setPreferenceData({
+        studentProfileId: profile.id,
+        preferredRoommates: [],
+        wakeupTime: "08:00",
+        sleepTime: "22:00",
+        studyHabit: StudyHabit.FLEXIBLE,
+        healthCondition: HealthCondition.NONE,
+      });
+    } finally {
+      setPreferenceLoading(false);
+    }
+  };
+
+  // Save preference
+  const savePreference = async () => {
+    if (!profile) return;
+    try {
+      setPreferenceLoading(true);
+      setPreferenceError("");
+
+      // Prepare data for API
+      const submitData = {
+        studentProfileId: profile.id,
+        preferredRoommates: preferenceData.preferredRoommates,
+        wakeupTime: `${preferenceData.wakeupTime}:00`,
+        sleepTime: `${preferenceData.sleepTime}:00`,
+        studyHabit: preferenceData.studyHabit,
+        healthCondition: preferenceData.healthCondition,
+      };
+
+      let res;
+      if (preferenceData.id) {
+        // Update existing preference
+        res = await api.patch(`/students/preference/${profile.id}`, submitData);
+      } else {
+        // Create new preference
+        res = await api.post(`/students/preference`, submitData);
+      }
+
+      if (!res.data.error) {
+        setShowPreferenceModal(false);
+        // Continue with payment after preference is saved
+        if (currentPaymentId) {
+          await processPayment(currentPaymentId);
+        }
+      } else {
+        setPreferenceError(res.data.message || "Failed to save preference.");
+      }
+    } catch (err: any) {
+      console.error("Error saving preference:", err);
+      setPreferenceError(err.response?.data?.message || "Error saving preference.");
+    } finally {
+      setPreferenceLoading(false);
+    }
+  };
+
+  // Pay Now with preference check
   const handlePayNow = async (paymentId: string) => {
+    if (!profile) return;
+    
+    const payment = payments.find(p => p.id === paymentId);
+    
+    // Check if it's hostel fee and show preference modal
+    if (payment?.type.toLowerCase().includes('hostel')) {
+      setCurrentPaymentId(paymentId);
+      await fetchStudentPreference();
+      setShowPreferenceModal(true);
+      return;
+    }
+    
+    // For non-hostel payments, proceed directly
+    await processPayment(paymentId);
+  };
+
+  // Process payment (actual payment processing)
+  const processPayment = async (paymentId: string) => {
     if (!profile) return;
     try {
       setProcessingId(paymentId);
@@ -82,6 +205,19 @@ export default function StudentPayment() {
     }
   };
 
+  // Handle preference form submission and continue to payment
+  const handlePreferenceSubmit = async () => {
+    await savePreference();
+  };
+
+  // Skip preference and proceed to payment
+  const handleSkipPreference = async () => {
+    setShowPreferenceModal(false);
+    if (currentPaymentId) {
+      await processPayment(currentPaymentId);
+    }
+  };
+
   // Generate No Due Form
   const handleGenerateNoDue = async () => {
     if (!profile) return;
@@ -100,7 +236,7 @@ export default function StudentPayment() {
       const res = await api.post(`/no-due/generate/${profile.id}`, {
         purpose: "Hostel and Mess Clearance"
       }, {
-        responseType: 'blob' // Important for file download
+        responseType: 'blob'
       });
 
       // Create blob and download
@@ -109,7 +245,6 @@ export default function StudentPayment() {
       const link = document.createElement('a');
       link.href = url;
       
-      // Extract filename from response headers or use default
       const contentDisposition = res.headers['content-disposition'];
       let fileName = 'no_due_certificate.pdf';
       if (contentDisposition) {
@@ -127,8 +262,6 @@ export default function StudentPayment() {
 
     } catch (err: any) {
       console.error('No Due generation error:', err);
-      
-      // Try to parse error message from blob if it exists
       if (err.response?.data instanceof Blob) {
         try {
           const errorText = await err.response.data.text();
@@ -155,7 +288,7 @@ export default function StudentPayment() {
           if (!res.data.error) {
             setReceiptUrl(res.data.data.receiptUrl);
             setShowSuccess(true);
-            fetchPayments(); // Refresh payments after successful payment
+            fetchPayments();
           } else {
             setSuccessError(res.data.message || "Failed to verify payment.");
             setShowSuccess(true);
@@ -185,7 +318,6 @@ export default function StudentPayment() {
               My Payments
             </h1>
             
-            {/* No Due Form Generation Button */}
             <div className="flex flex-col items-end">
               <button
                 onClick={handleGenerateNoDue}
@@ -305,6 +437,19 @@ export default function StudentPayment() {
             )}
           </section>
         </div>
+
+        {/* Preference Modal */}
+        <PreferenceModal
+          show={showPreferenceModal}
+          onClose={() => setShowPreferenceModal(false)}
+          onSubmit={handlePreferenceSubmit}
+          onSkip={handleSkipPreference}
+          profile={profile}
+          preferenceData={preferenceData}
+          setPreferenceData={setPreferenceData}
+          loading={preferenceLoading}
+          error={preferenceError}
+        />
 
         <StripeSuccessModal
           show={showSuccess}

@@ -24,6 +24,7 @@ export default function AdminHostelPage() {
     warden: "",
     description: "",
     mealPlan: "",
+    hostelFee: 0, // Add this line
   });
   const [popup, setPopup] = useState<{ type: "success" | "error"; message: string } | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<{ show: boolean; hostelId: string; hostelName: string } | null>(null);
@@ -56,7 +57,15 @@ export default function AdminHostelPage() {
 
   const openAddForm = () => {
     setEditingHostel(null);
-    setFormData({ name: "", type: "boys", totalBlocks: 1, warden: "", description: "", mealPlan: "" });
+    setFormData({ 
+      name: "", 
+      type: "boys", 
+      totalBlocks: 1, 
+      warden: "", 
+      description: "", 
+      mealPlan: "",
+      hostelFee: 0 // Add this line
+    });
     setShowForm(true);
   };
 
@@ -69,19 +78,34 @@ export default function AdminHostelPage() {
       warden: hostel.warden,
       description: hostel.description,
       mealPlan: hostel.mealPlan?.id || "",
+      hostelFee: hostel.hostelFee || 0 // Add this line
     });
     setShowForm(true);
   };
 
   const handleSubmit = async (data: any) => {
     try {
+      // Convert hostelFee to number
+      const submitData = {
+        ...data,
+        hostelFee: Number(data.hostelFee)
+      };
+
       if (editingHostel) {
-        const res = await api.patch(`/hostel/${editingHostel.id}`, data);
-        if (!res.data.error) { showPopup("success", "Hostel updated successfully"); fetchHostels(); setShowForm(false); }
+        const res = await api.patch(`/hostel/${editingHostel.id}`, submitData);
+        if (!res.data.error) { 
+          showPopup("success", "Hostel updated successfully"); 
+          fetchHostels(); 
+          setShowForm(false); 
+        }
         else showPopup("error", res.data.message);
       } else {
-        const res = await api.post("/hostel", data);
-        if (!res.data.error) { showPopup("success", "Hostel created successfully"); fetchHostels(); setShowForm(false); }
+        const res = await api.post("/hostel", submitData);
+        if (!res.data.error) { 
+          showPopup("success", "Hostel created successfully"); 
+          fetchHostels(); 
+          setShowForm(false); 
+        }
         else showPopup("error", res.data.message);
       }
     } catch (err: any) {
@@ -93,9 +117,14 @@ export default function AdminHostelPage() {
     if (!deleteConfirm) return;
     try {
       const res = await api.delete(`/hostel/${deleteConfirm.hostelId}`);
-      if (!res.data.error) { showPopup("success", "Hostel deleted successfully"); fetchHostels(); }
+      if (!res.data.error) { 
+        showPopup("success", "Hostel deleted successfully"); 
+        fetchHostels(); 
+      }
       else showPopup("error", res.data.message);
-    } catch (err: any) { showPopup("error", err.response?.data?.message || "Failed to delete hostel"); }
+    } catch (err: any) { 
+      showPopup("error", err.response?.data?.message || "Failed to delete hostel"); 
+    }
     finally { setDeleteConfirm(null); }
   };
 
@@ -128,6 +157,10 @@ export default function AdminHostelPage() {
                   <p className="text-sm text-gray-500 capitalize mb-2">{h.type} hostel • {h.totalBlocks} blocks</p>
                   <p className="text-gray-700 text-sm mb-1"><span className="font-semibold">Warden:</span> {h.warden || "N/A"}</p>
                   <p className="text-gray-700 text-sm mb-1"><span className="font-semibold">Meal Plan:</span> {h.mealPlan ? h.mealPlan.name : "Not Assigned"}</p>
+                  {/* Add hostel fee display */}
+                  <p className="text-gray-700 text-sm mb-1">
+                    <span className="font-semibold">Hostel Fee:</span> ₹{h.hostelFee || 0}
+                  </p>
                   <p className="text-gray-600 text-sm mb-4">{h.description || "No description provided."}</p>
                   <div className="flex justify-between mt-3">
                     <button onClick={(e) => { e.stopPropagation(); openEditForm(h); }}

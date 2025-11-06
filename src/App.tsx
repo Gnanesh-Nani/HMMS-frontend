@@ -18,6 +18,8 @@ import StudentProfileSelfPage from "./pages/Student/StudentProfilePage";
 import PublicVerifyNoDue from "./pages/PublicVerifyNoDue";
 import StudentMealPlanPage from "./pages/Student/StudentMealPlanPage";
 import BulkPayment from "./pages/Admin/BulkPayment";
+import HostelMigration from "./pages/Admin/HostelMigration";
+import CreateMigrationPage from "./pages/Admin/CreateMigrationPage";
 
 export default function App() {
   return (
@@ -163,6 +165,25 @@ export default function App() {
               </ProtectedRoute>
             }
           />
+
+          <Route 
+            path="/admin/hostel-migration"
+            element = {
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <HostelMigration/>
+              </ProtectedRoute>
+            }
+          />
+
+            <Route 
+            path="/admin/create-migration"
+            element = {
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <CreateMigrationPage/>
+              </ProtectedRoute>
+            }
+          />
+
         </Routes>
       </BrowserRouter>
     </AuthProvider>

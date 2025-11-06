@@ -236,7 +236,7 @@ export default function StudentProfileSelfPage() {
                     />
                   </div>
 
-                  <div className="space-y-2">
+                  {/* <div className="space-y-2">
                     <label className="block text-sm font-medium text-gray-700">Gender *</label>
                     <select
                       name="gender"
@@ -248,9 +248,9 @@ export default function StudentProfileSelfPage() {
                       <option value="female">Female</option>
                       <option value="other">Other</option>
                     </select>
-                  </div>
+                  </div> */}
 
-                  <div className="space-y-2">
+                  {/* <div className="space-y-2">
                     <label className="block text-sm font-medium text-gray-700">Department</label>
                     <input
                       type="text"
@@ -259,9 +259,9 @@ export default function StudentProfileSelfPage() {
                       onChange={handleChange}
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
                     />
-                  </div>
+                  </div> */}
 
-                  <div className="space-y-2">
+                  {/* <div className="space-y-2">
                     <label className="block text-sm font-medium text-gray-700">Year</label>
                     <input
                       type="number"
@@ -272,7 +272,7 @@ export default function StudentProfileSelfPage() {
                       min="1"
                       max="4"
                     />
-                  </div>
+                  </div> */}
 
                   <div className="space-y-2">
                     <label className="block text-sm font-medium text-gray-700">Date of Birth</label>

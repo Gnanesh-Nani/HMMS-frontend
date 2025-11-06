@@ -313,13 +313,13 @@ export default function PreferenceModal({
         </div> */}
 
         <div className="flex justify-end space-x-3">
-          <button
+          {/* <button
             onClick={onSkip}
             disabled={loading}
             className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition font-medium disabled:opacity-50"
           >
             Skip & Pay
-          </button>
+          </button> */}
           <button
             onClick={onSubmit}
             disabled={loading}

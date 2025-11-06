@@ -181,6 +181,7 @@ export default function AdminHeader() {
           </div>
 
           <NavLink to="/admin/meal-plan" label="MealPlan" onClick={closeAllDropdowns}/>
+          <NavLink to="/admin/notifications" label="Notifications" onClick={closeAllDropdowns} />
           <NavLink to="/admin/feedback" label="Feedback / Complaints" onClick={closeAllDropdowns} />
           
           {/* Profile Info */}

@@ -20,6 +20,7 @@ import StudentMealPlanPage from "./pages/Student/StudentMealPlanPage";
 import BulkPayment from "./pages/Admin/BulkPayment";
 import HostelMigration from "./pages/Admin/HostelMigration";
 import CreateMigrationPage from "./pages/Admin/CreateMigrationPage";
+import NotificationPage from "./pages/Admin/NotificationPage";
 
 export default function App() {
   return (
@@ -175,11 +176,20 @@ export default function App() {
             }
           />
 
-            <Route 
+          <Route 
             path="/admin/create-migration"
             element = {
               <ProtectedRoute allowedRoles={["admin"]}>
                 <CreateMigrationPage/>
+              </ProtectedRoute>
+            }
+          />
+
+          <Route 
+            path="/admin/notifications"
+            element = {
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <NotificationPage/>
               </ProtectedRoute>
             }
           />

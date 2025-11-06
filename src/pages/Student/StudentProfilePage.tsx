@@ -18,6 +18,8 @@ interface Student {
   address: string | null;
   mailId: string;
   contacts: string[];
+  registerNo: string;
+  physicallyChallenged: boolean;
 }
 
 export default function StudentProfileSelfPage() {
@@ -174,9 +176,11 @@ export default function StudentProfileSelfPage() {
                   <h2 className="text-xl font-bold text-gray-800 border-b pb-3">Personal Information</h2>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <InfoField label="Full Name" value={student.name} />
+                    <InfoField label="Register Number" value={student.registerNo || "N/A"} />
                     <InfoField label="Gender" value={student.gender} capitalize />
                     <InfoField label="Date of Birth" value={student.dob ? new Date(student.dob).toLocaleDateString() : "N/A"} />
                     <InfoField label="Father's Name" value={student.fathersName || "N/A"} />
+                    <InfoField label="Physically-Challenged" value={student.physicallyChallenged==true?"Yes":"No" } />
                   </div>
                 </div>
 

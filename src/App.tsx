@@ -21,6 +21,8 @@ import BulkPayment from "./pages/Admin/BulkPayment";
 import HostelMigration from "./pages/Admin/HostelMigration";
 import CreateMigrationPage from "./pages/Admin/CreateMigrationPage";
 import NotificationPage from "./pages/Admin/NotificationPage";
+import StudentTickets from "./pages/StudentTicket";
+import AdminTickets from "./pages/Admin/AdminTickets";
 
 export default function App() {
   return (
@@ -70,6 +72,15 @@ export default function App() {
           />
 
           <Route
+            path="/student/feedback"
+            element={
+              <ProtectedRoute allowedRoles={["student"]}>
+                <StudentTickets />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
             path="/student/profile"
             element={
               <ProtectedRoute allowedRoles={["student"]}>
@@ -84,6 +95,15 @@ export default function App() {
             element={
               <ProtectedRoute allowedRoles={["admin"]}>
                 <BulkRegister />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/admin/feedback"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <AdminTickets/>
               </ProtectedRoute>
             }
           />
